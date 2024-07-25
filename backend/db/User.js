@@ -6,10 +6,10 @@ dotenv.config();
 mongoose
   .connect(process.env.MONGO)
   .then(() => {
-    console.log("MongoDb is connected");
+    console.log("MongoDB is connected");
   })
   .catch((err) => {
-    console.log(err);
+    console.error("Error connecting to MongoDB:", err);
   });
 
 const userSchema = new mongoose.Schema({
@@ -18,33 +18,30 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
     trim: true,
-    minLength: 3,
-    maxLength: 30,
+    minlength: 3,
+    maxlength: 30,
   },
   password: {
     type: String,
     required: true,
-    unique: true,
     trim: true,
-    minLength: 5,
-    maxLength: 30,
+    minlength: 5,
+    maxlength: 30,
   },
-  fastName: {
+  firstName: {
     type: String,
     required: true,
     trim: true,
-    maxLength: 50,
+    maxlength: 50,
   },
   lastName: {
     type: String,
     required: true,
     trim: true,
-    maxLength: 50,
+    maxlength: 50,
   },
 });
 
 const User = mongoose.model("User", userSchema);
 
-module.exports = {
-  User,
-};
+module.exports = { User };
