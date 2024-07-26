@@ -5,6 +5,7 @@ const ButtonHeading = ({ label, onClick }) => {
     <button
       onClick={onClick}
       className="bg-black text-white w-full rounded-lg h-9 my-2"
+      type="button"
     >
       {label}
     </button>
