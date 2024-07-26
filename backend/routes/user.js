@@ -2,7 +2,7 @@ const express = require("express");
 const z = require("zod");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
-const { User } = require("../db/user");
+const { User, Account } = require("../db/user");
 const authMiddleware = require("../middleware");
 
 dotenv.config();
@@ -10,6 +10,8 @@ dotenv.config();
 const router = express.Router();
 
 const jwt_secret = process.env.JWT_SECRET;
+
+//-----------------------signup-----------------------//
 
 const signUpSchema = z.object({
   username: z
@@ -50,6 +52,13 @@ router.post("/signup", async (req, res) => {
 
     const userId = user._id;
 
+    //---------------add account balance -----------------------//
+
+    await Account.create({
+      userId,
+      balance: 1 + Math.random() * 100000,
+    });
+
     const token = jwt.sign({ userId }, jwt_secret);
 
     res.json({
@@ -63,6 +72,8 @@ router.post("/signup", async (req, res) => {
     });
   }
 });
+
+//------------------------------signin-------------------------------//
 
 const signinSchema = z.object({
   username: z.string().email("Invalid email format"),
@@ -103,6 +114,8 @@ router.post("/signin", async (req, res) => {
   }
 });
 
+//-------------------------------update user data---------------------------//
+
 const updateSchema = z.object({
   password: z
     .string()
@@ -128,6 +141,45 @@ router.put("/user", authMiddleware, async (req, res) => {
     });
   } catch (error) {
     console.error("Error updating user data:", error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+});
+
+//-----------------------user filter----------------------//
+
+router.get("/bulk", authMiddleware, async (req, res) => {
+  const filter = req.query.filter || "";
+
+  try {
+    const users = await User.find({
+      $or: [
+        {
+          firstName: {
+            $regex: filter,
+            $options: "i", // Case-insensitive search
+          },
+        },
+        {
+          lastName: {
+            $regex: filter,
+            $options: "i",
+          },
+        },
+      ],
+    });
+
+    res.status(200).json({
+      users: users.map((user) => ({
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        _id: user._id,
+      })),
+    });
+  } catch (error) {
+    console.error("Error fetching users:", error);
     res.status(500).json({
       message: "Internal server error",
     });
